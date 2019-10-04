@@ -1,0 +1,14 @@
+# Example file
+#
+# Edit to fit your Confluence/JIRA installations and save in
+# $HOME/.mylogin
+#
+# Don't forget to use secure permissions, e.g.
+#
+# chmod 600 $HOME/.mylogin
+
+username=jbond
+password=Password007
+
+confluence_base="confluence.mycompany.com"
+jira_extern=https://jira.mycompany.com
