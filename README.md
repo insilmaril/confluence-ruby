@@ -21,3 +21,11 @@ Usage: confluence.rb [options]
     -v, --verbose                    Run verbosely
     -h, --help                       Prints this help
 ```
+
+The script reads $HOME/.mylogin as configuration file. This file
+contains credentials and base URL of your Confluence instance.
+
+An example is provided in 
+```
+mylogin-example
+```
