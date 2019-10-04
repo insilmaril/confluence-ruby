@@ -5,6 +5,7 @@ Helper script to access Atlassian Confluence. Currently you can
 
 * create and update pages
 * read page information (version, labels, space key, ...)
+* search for users
 
 Usage
 -----
