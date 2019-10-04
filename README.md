@@ -1,4 +1,4 @@
-###confluence.rb
+### confluence.rb
 
 Helper script to access Atlassian Confluence. Currently you can
 
