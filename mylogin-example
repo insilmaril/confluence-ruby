@@ -7,8 +7,12 @@
 #
 # chmod 600 $HOME/.mylogin
 
+[default]
 username=jbond
 password=Password007
 
 confluence_base="confluence.mycompany.com"
 jira_extern=https://jira.mycompany.com
+
+[jenkins]
+url=https://jenkins.mycompany.com

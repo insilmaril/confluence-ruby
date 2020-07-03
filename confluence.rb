@@ -11,9 +11,10 @@ require 'uri'
 
 config = ParseConfig.new("#{ENV['HOME']}/.mylogin")
 
-$username = config['username']
-$password = config['password']
-$confluence_base = config['confluence_base']
+$username = config['default']['username']
+$password = config['default']['password']
+$confluence_base = config['default']['confluence_base']
+puts "confluence_base=#{$confluence_base}"
 $confluence_api  = $confluence_base + "/rest/api"
 
 $options = OpenStruct.new
@@ -72,17 +73,15 @@ def get_details (url)
   if m = response.body.match( /meta\sname="ajs-page-id"\scontent="(\d*)/)
     details.id = m[1]
   else
-    puts response.body
-    puts "Error: Page not found  - "#{url}"
-    exit
+    puts response.body if $options[:verbose]
+    fail "Error: Page not found  - "#{url}"
   end
 
   if m = response.body.match( /meta\s*id="confluence-space-key"\s* name="confluence-space-key"\s*content="(.*)"/)
     details.space_key = m[1]
   else
     puts response.body
-    puts "Error: Space key not found - #{url}"
-    exit
+    fail "Error: Space key not found - #{url}"
   end
 
   # Get all title, version, labels via REST call
@@ -96,6 +95,8 @@ def get_details (url)
 
   r = JSON.parse(json)
 
+  pp "Details"
+  pp details
   details.title   = r['title']
   details.version = r['version']['number']
   details.labels = r['metadata']['labels']['results']
@@ -155,18 +156,15 @@ begin
       details = get_details( $options.parent_url)
       puts details.to_s if $options['verbose']
     else
-      puts "Error: Parent page does not look like an URL: #{$options.parent_url}"
-      exit
+      fail "Error: Parent page does not look like an URL: #{$options.parent_url}"
     end
 
     if $options.page_title.empty?
-      puts "Error: No page title given"
-      exit
+      fail "Error: No page title given"
     end
 
     if $options.content_file.empty?
-      puts "Error: No content file provided for upload"
-      exit
+      fail "Error: No content file provided for upload"
     end
 
     f = File.open($options.content_file)
@@ -190,8 +188,8 @@ begin
     begin
       r = RestClient.post( url, payload.to_json, {content_type: :json, accept: :json} ) 
     rescue RestClient::ExceptionWithResponse => e
-      puts "Error: Request failed:"
       pp JSON.parse(e.response)
+      fail "Error: The request  failed with the response seen above:"
     end
 
   end
@@ -202,13 +200,11 @@ begin
     puts "*** Updating #{$options.update_url}"  if $options['verbose']
 
     if !$options.update_url.include?("http")
-      puts "Error: Page does not look like an URL: #{$options.update_url}"
-      exit
+      fail "Error: Page does not look like an URL: #{$options.update_url}"
     end
 
     if $options.content_file.empty?
-      puts "Error: No content file for upload provided"
-      exit
+      fail "Error: No content file for upload provided"
     end
 
     # Find ID and space key
@@ -236,8 +232,8 @@ begin
     begin
       r = RestClient.put( url, payload.to_json, {content_type: :json} ) 
     rescue RestClient::ExceptionWithResponse => e
-      puts "Error: Request failed:"
       pp JSON.parse(e.response)
+      fail "Error: The request  failed with the response seen above:"
     end
   end
 
@@ -257,15 +253,15 @@ begin
     begin
       json = RestClient.get(url)
     rescue RestClient::ExceptionWithResponse => e
-      puts "Error: Request failed:"
       pp JSON.parse(e.response)
+      fail "Error: The request  failed with the response seen above:"
     end
     r = JSON.parse(json)
 
     puts "#{r['result'].size} users found:" if $options[:verbose]
 
     r['result'].each do |u|
-      puts "\"#{u['title']}\", \"#{u['username']}\", \"#{u['userKey']}\""
+      puts "name: \"#{u['title']}\", login: \"#{u['username']}\", key: \"#{u['userKey']}\""
     end
     exit
   end
