@@ -108,8 +108,7 @@ def get_page_count (spacename)
   puts "  * Looking for numbers of pages in space #{spacename} " if $options[:verbose]
 
     # Unofficial REST interface?
-    #url = "https://#{$username}:#{$password}@#{config['confluence_base']}/rest/prototype/1/search.json?max-results=999&query=#{$options.search_user}&search=user"
-    url = "https://#{$username}:#{$password}@#{$confluence_base}/rest/api/search?cql=space=#{spacename} and type = page"
+    url = "https://#{$username}:#{$password}@#{$confluence_base}/rest/api/search?cql=space=#{spacename} and type IN (blogpost, page)"
 
     begin
       json = RestClient.get(url)
@@ -119,7 +118,7 @@ def get_page_count (spacename)
     end
     r = JSON.parse(json)
 
-    puts "#{r["totalSize"]} pages in space '#{spacename}'"
+    puts "#{r["totalSize"]} pages and blogposts in space '#{spacename}'"
 end
 
 begin
