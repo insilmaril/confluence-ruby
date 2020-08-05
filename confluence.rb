@@ -248,7 +248,7 @@ begin
     puts "*** Looking for users matching: #{$options.search_user}" if $options[:verbose]
       
     # Unofficial REST interface?
-    url = "https://#{$username}:#{$password}@#{config['confluence_base']}/rest/prototype/1/search.json?max-results=999&query=#{$options.search_user}&search=user"
+    url = "https://#{$username}:#{$password}@#{$confluence_base}/rest/prototype/1/search.json?max-results=999&query=#{$options.search_user}&search=user"
 
     begin
       json = RestClient.get(url)
