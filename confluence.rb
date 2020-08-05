@@ -14,12 +14,12 @@ config = ParseConfig.new("#{ENV['HOME']}/.mylogin")
 $username = config['default']['username']
 $password = config['default']['password']
 $confluence_base = config['default']['confluence_base']
-puts "confluence_base=#{$confluence_base}"
 $confluence_api  = $confluence_base + "/rest/api"
 
 $options = OpenStruct.new
 $options.content_file = ""
 $options.details_url  = ""
+$options.page_count   = ""
 $options.page_title   = ""
 $options.parent_url   = ""
 $options.search_user  = ""
@@ -85,12 +85,13 @@ def get_details (url)
   end
 
   # Get all title, version, labels via REST call
-  u = "https://#{$username}:#{$password}@#{$confluence_api}/content/#{details.id}?expand=metadata.labels,version"
+  request = "#{$confluence_api}/content/#{details.id}?expand=metadata.labels,version"
+  request_full = "https://#{$username}:#{$password}@#{request}"
   begin
-    json = RestClient.get(u) 
+    json = RestClient.get(request_full) 
   rescue RestClient::ExceptionWithResponse => e
     puts e.response
-    puts "Request failed."
+    fail "Request failed: #{request}"
   end
 
   r = JSON.parse(json)
@@ -101,6 +102,24 @@ def get_details (url)
   details.version = r['version']['number']
   details.labels = r['metadata']['labels']['results']
   return details
+end
+
+def get_page_count (spacename)
+  puts "  * Looking for numbers of pages in space #{spacename} " if $options[:verbose]
+
+    # Unofficial REST interface?
+    #url = "https://#{$username}:#{$password}@#{config['confluence_base']}/rest/prototype/1/search.json?max-results=999&query=#{$options.search_user}&search=user"
+    url = "https://#{$username}:#{$password}@#{$confluence_base}/rest/api/search?cql=space=#{spacename} and type = page"
+
+    begin
+      json = RestClient.get(url)
+    rescue RestClient::ExceptionWithResponse => e
+      pp JSON.parse(e.response)
+      fail "Error: The request  failed with the response seen above:"
+    end
+    r = JSON.parse(json)
+
+    puts "#{r["totalSize"]} pages in space '#{spacename}'"
 end
 
 begin
@@ -117,6 +136,10 @@ begin
 
     opts.on("-f", "--content_file FILENAME", "Content to upload") do |o|
       $options.content_file << o
+    end
+
+    opts.on("-p", "--page_count PAGENAME", "Count pages in space") do |o|
+      $options.page_count << o
     end
 
     opts.on("-s", "--search_user USERNAME", "Search user") do |o|
@@ -147,6 +170,11 @@ begin
   space_key = ""
  
   ### Create new page below parent_url:
+
+  if !$options.page_count.empty?
+    get_page_count ($options.page_count)
+  end
+
 
   if !$options.parent_url.empty?
     puts "*** Creating new page..." if $options['verbose']
