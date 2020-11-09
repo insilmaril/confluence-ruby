@@ -137,7 +137,7 @@ begin
       $options.content_file << o
     end
 
-    opts.on("-p", "--page_count PAGENAME", "Count pages in space") do |o|
+    opts.on("-p", "--page_count SPACENAME", "Count pages in space") do |o|
       $options.page_count << o
     end
 
